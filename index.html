@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tetris Bright</title>
 <style>
 body {
@@ -12,25 +12,48 @@ body {
   color: #fff;
   font-family: "Poppins", sans-serif;
 }
+
+/* 🎮 Игровое поле */
 canvas {
   display: block;
   margin: 40px auto;
   background: #000;
+  border: 3px solid #00ffff;
+  box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff, inset 0 0 10px #00ffff;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
 }
+
+/* 🌈 Превью следующей фигуры */
+#next {
+  margin-top: 10px;
+  border: 2px solid #00ffff;
+  box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  border-radius: 5px;
+}
+
+/* 📊 Панель статистики */
 #ui {
   position: absolute;
   top: 30px;
   right: 30px;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   padding: 15px 25px;
   border-radius: 10px;
+  border: 2px solid #00ffff;
+  box-shadow: 0 0 10px #00ffff;
 }
 #ui h1 {
   font-size: 20px;
   color: #fff;
   margin: 0 0 10px;
 }
-#ui p { margin: 4px 0; font-size: 15px; }
+#ui p {
+  margin: 4px 0;
+  font-size: 15px;
+}
+
+/* 💣 Индикация готовности бомбы */
 #bombReady {
   color: red;
   font-weight: bold;
@@ -38,30 +61,41 @@ canvas {
   visibility: hidden;
 }
 @keyframes blink {
-  0%{opacity:1;}
-  50%{opacity:0;}
-  100%{opacity:1;}
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
-#startScreen,#gameOver {
-  position: fixed; top:0;left:0;right:0;bottom:0;
-  background:#000;
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
-  z-index:10;
+
+/* 🕹️ Старт и конец игры */
+#startScreen, #gameOver {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10;
 }
-#startScreen button,#gameOver button {
-  font-size:22px;
-  padding:12px 30px;
-  border:none;
-  border-radius:8px;
-  background:#fff;
-  color:#000;
-  cursor:pointer;
+#startScreen button, #gameOver button {
+  font-size: 22px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  background: #00ffff;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 0 15px #00ffff;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
-#next {margin-top:10px;}
+#startScreen button:hover, #gameOver button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px #00ffff;
+}
 </style>
 </head>
-<body>
 
+<body>
 <div id="startScreen">
   <h1 style="font-size:40px;">Tetris Bright</h1>
   <button id="startBtn">Play!</button>
@@ -91,11 +125,12 @@ canvas {
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 context.scale(20,20);
+
 const nextCanvas=document.getElementById('next');
 const nextCtx=nextCanvas.getContext('2d');
 nextCtx.scale(20,20);
 
-const colors=[null,'#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffa500','#ff4444']; // 8=bomb red
+const colors=[null,'#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffa500','#ff4444']; // 8=bomb
 
 const arena=createMatrix(12,20);
 const player={pos:{x:0,y:0},matrix:null,next:null,score:0,level:1,bonus:0,bombs:0,isBomb:false};
@@ -114,6 +149,7 @@ function createPiece(t){
     case 'Z':return[[7,7,0],[0,7,7],[0,0,0]];
   }
 }
+
 function drawMatrix(matrix,offset,ctx=context){
   matrix.forEach((row,y)=>row.forEach((val,x)=>{
     if(val!==0){
@@ -129,6 +165,7 @@ function drawMatrix(matrix,offset,ctx=context){
     }
   }));
 }
+
 function draw(){
   context.fillStyle='#000';
   context.fillRect(0,0,canvas.width,canvas.height);
@@ -138,6 +175,7 @@ function draw(){
   nextCtx.fillRect(0,0,nextCanvas.width,nextCanvas.height);
   drawMatrix(player.next,{x:1,y:1},nextCtx);
 }
+
 function collide(arena,player){
   const[m,o]=[player.matrix,player.pos];
   for(let y=0;y<m.length;y++)
@@ -145,19 +183,23 @@ function collide(arena,player){
       if(m[y][x]!==0&&(arena[y+o.y]&&arena[y+o.y][x+o.x])!==0)return true;
   return false;
 }
+
 function merge(arena,player){
   player.matrix.forEach((r,y)=>r.forEach((v,x)=>{
     if(v!==0)arena[y+player.pos.y][x+player.pos.x]=v;
   }));
 }
+
 function rotate(matrix,dir){
   for(let y=0;y<matrix.length;y++)
     for(let x=0;x<y;x++)
       [matrix[x][y],matrix[y][x]]=[matrix[y][x],matrix[x][y]];
   if(dir>0)matrix.forEach(r=>r.reverse());else matrix.reverse();
 }
+
 function playerMove(dir){player.pos.x+=dir;if(collide(arena,player))player.pos.x-=dir;}
 function dropDown(){while(!collide(arena,player))player.pos.y++;player.pos.y--;playerDrop();}
+
 function playerDrop(){
   player.pos.y++;
   if(collide(arena,player)){
@@ -168,6 +210,7 @@ function playerDrop(){
   }
   dropCounter=0;
 }
+
 function arenaSweep(){
   let lines=0;
   outer:for(let y=arena.length-1;y>=0;--y){
@@ -182,6 +225,7 @@ function arenaSweep(){
     }
   }
 }
+
 function explode(pos){
   flashArea(pos,2);
   let cleared=0;
@@ -192,11 +236,13 @@ function explode(pos){
     }
   player.score+=cleared;
 }
+
 function flashArea(pos,r){
   context.fillStyle='rgba(255,255,255,0.6)';
   context.fillRect((pos.x-r)*20,(pos.y-r)*20,(r*2+1)*20,(r*2+1)*20);
   setTimeout(draw,200);
 }
+
 function playerReset(){
   player.isBomb=false;
   player.matrix=player.next;
@@ -209,6 +255,7 @@ function playerReset(){
     running=false;
   }
 }
+
 function update(time=0){
   if(!running||paused)return;
   const delta=time-lastTime;lastTime=time;
@@ -217,6 +264,7 @@ function update(time=0){
   draw();updateScore();
   requestAnimationFrame(update);
 }
+
 function updateScore(){
   document.getElementById('score').innerText=player.score;
   document.getElementById('level').innerText=player.level;
@@ -224,6 +272,7 @@ function updateScore(){
   document.getElementById('bombs').innerText=player.bombs;
   document.getElementById('bombReady').style.visibility=player.bombs>0?'visible':'hidden';
 }
+
 document.addEventListener('keydown',e=>{
   if(!running)return;
   if(e.key==='ArrowLeft')playerMove(-1);
@@ -238,8 +287,10 @@ document.addEventListener('keydown',e=>{
     player.isBomb=true;player.bombs--;player.matrix=[[8]];player.pos={x:5,y:0};
   }
 });
+
 function playerRotate(dir){rotate(player.matrix,dir);if(collide(arena,player))rotate(player.matrix,-dir);}
 const pieces='ILJOTSZ'.split('');
+
 function startGame(){
   document.getElementById('startScreen').style.display='none';
   document.getElementById('gameOver').style.display='none';
@@ -250,8 +301,10 @@ function startGame(){
   running=true;paused=false;lastTime=0;
   requestAnimationFrame(update);
 }
+
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('restartBtn').onclick=startGame;
+
 setInterval(()=>{
   const lv=Math.floor(player.score/100)+1;
   if(lv>player.level){player.level=lv;dropInterval=Math.max(200,1000-lv*80);}

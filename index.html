@@ -189,6 +189,7 @@ function resizeCanvas() {
   cellSize = Math.floor(height / ROWS);
   tetris.width = cellSize * COLS;
   tetris.height = cellSize * ROWS;
+  // reset scale transform for drawing functions using cell size
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
